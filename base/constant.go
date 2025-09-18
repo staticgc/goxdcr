@@ -691,6 +691,7 @@ func NewServerVersionFromString(str string) (ServerVersion, error) {
 }
 
 // User agent for REST calls.
+var GoxdcrCngUserAgentSuffix = " (grpc)" // Protostellar does not define an RPC API version for Phase-1 of the CNG project.
 var GoxdcrUserAgentPrefix = "couchbase-goxdcr"
 var GoxdcrUserAgent = ""
 
@@ -806,7 +807,7 @@ const (
 
 var HttpRedactKeys = []string{HttpReqUserKey, AuthorizationKey, CBOnBehalfOfKey}
 
-const AuthorizationKeyRedactPrefix = "Basic "
+const BasicAuthorizationKey = "Basic "
 
 // retry interval for setDerivedObj op
 var RetryIntervalSetDerivedObj = 100 * time.Millisecond
