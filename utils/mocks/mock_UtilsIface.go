@@ -3,14 +3,18 @@
 package mocks
 
 import (
-	couchbase "github.com/couchbase/go-couchbase"
 	base "github.com/couchbase/goxdcr/v8/base"
+	codes "google.golang.org/grpc/codes"
+
+	couchbase "github.com/couchbase/go-couchbase"
 
 	expvar "expvar"
 
 	gomemcached "github.com/couchbase/gomemcached"
 
 	http "net/http"
+
+	internal_xdcr_v1 "github.com/couchbase/goprotostellar/genproto/internal_xdcr_v1"
 
 	log "github.com/couchbase/goxdcr/v8/log"
 
@@ -538,6 +542,73 @@ func (_c *UtilsIface_CheckForNecessarySystemXattrsInUprEvent_Call) Return(hasTxn
 }
 
 func (_c *UtilsIface_CheckForNecessarySystemXattrsInUprEvent_Call) RunAndReturn(run func(*memcached.UprEvent, base.DataPool, *[][]byte, bool) (bool, bool, []byte, int, error, string, int64, []byte)) *UtilsIface_CheckForNecessarySystemXattrsInUprEvent_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CngGetClusterInfo provides a mock function with given fields: hostAdd, userCreds, caCert
+func (_m *UtilsIface) CngGetClusterInfo(hostAdd string, userCreds base.Credentials, caCert []byte) (*internal_xdcr_v1.GetClusterInfoResponse, codes.Code, error) {
+	ret := _m.Called(hostAdd, userCreds, caCert)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CngGetClusterInfo")
+	}
+
+	var r0 *internal_xdcr_v1.GetClusterInfoResponse
+	var r1 codes.Code
+	var r2 error
+	if rf, ok := ret.Get(0).(func(string, base.Credentials, []byte) (*internal_xdcr_v1.GetClusterInfoResponse, codes.Code, error)); ok {
+		return rf(hostAdd, userCreds, caCert)
+	}
+	if rf, ok := ret.Get(0).(func(string, base.Credentials, []byte) *internal_xdcr_v1.GetClusterInfoResponse); ok {
+		r0 = rf(hostAdd, userCreds, caCert)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*internal_xdcr_v1.GetClusterInfoResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, base.Credentials, []byte) codes.Code); ok {
+		r1 = rf(hostAdd, userCreds, caCert)
+	} else {
+		r1 = ret.Get(1).(codes.Code)
+	}
+
+	if rf, ok := ret.Get(2).(func(string, base.Credentials, []byte) error); ok {
+		r2 = rf(hostAdd, userCreds, caCert)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// UtilsIface_CngGetClusterInfo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CngGetClusterInfo'
+type UtilsIface_CngGetClusterInfo_Call struct {
+	*mock.Call
+}
+
+// CngGetClusterInfo is a helper method to define mock.On call
+//   - hostAdd string
+//   - userCreds base.Credentials
+//   - caCert []byte
+func (_e *UtilsIface_Expecter) CngGetClusterInfo(hostAdd interface{}, userCreds interface{}, caCert interface{}) *UtilsIface_CngGetClusterInfo_Call {
+	return &UtilsIface_CngGetClusterInfo_Call{Call: _e.mock.On("CngGetClusterInfo", hostAdd, userCreds, caCert)}
+}
+
+func (_c *UtilsIface_CngGetClusterInfo_Call) Run(run func(hostAdd string, userCreds base.Credentials, caCert []byte)) *UtilsIface_CngGetClusterInfo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(base.Credentials), args[2].([]byte))
+	})
+	return _c
+}
+
+func (_c *UtilsIface_CngGetClusterInfo_Call) Return(_a0 *internal_xdcr_v1.GetClusterInfoResponse, _a1 codes.Code, _a2 error) *UtilsIface_CngGetClusterInfo_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *UtilsIface_CngGetClusterInfo_Call) RunAndReturn(run func(string, base.Credentials, []byte) (*internal_xdcr_v1.GetClusterInfoResponse, codes.Code, error)) *UtilsIface_CngGetClusterInfo_Call {
 	_c.Call.Return(run)
 	return _c
 }

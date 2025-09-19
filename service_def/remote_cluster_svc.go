@@ -34,7 +34,7 @@ type RemoteClusterSvc interface {
 	AddRemoteCluster(ref *metadata.RemoteClusterReference, skipConnectivityValidation bool) error
 	ValidateSetRemoteCluster(refName string, ref *metadata.RemoteClusterReference) error
 	SetRemoteCluster(refName string, ref *metadata.RemoteClusterReference) error
-	ValidateRemoteCluster(ref *metadata.RemoteClusterReference) error
+	ValidateRemote(ref *metadata.RemoteClusterReference, updateRef bool) error
 	DelRemoteCluster(refName string) (*metadata.RemoteClusterReference, error)
 	// Gets a map of cloned remote cluster references, with unique ID being the key
 	RemoteClusters() (map[string]*metadata.RemoteClusterReference, error)
@@ -114,6 +114,9 @@ type RemoteClusterSvc interface {
 
 	// set staged credentials
 	SetStagedCredentials(refName string, stagedCredentials *base.Credentials) (*metadata.RemoteClusterReference, error)
+
+	// Get user credentials and caCert for a remote cluster identified by uuid
+	GetCredentials(uuid string, refresh bool) (creds *base.Credentials, caCert []byte, err error)
 }
 
 type ClusterHeartbeatAPI interface {

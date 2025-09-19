@@ -431,6 +431,18 @@ func (adminport *Adminport) doCreateRemoteClusterRequest(request *http.Request) 
 		return EncodeRemoteClusterErrorsMapIntoResponse(errorsMap)
 	}
 
+	if remoteClusterRef.GetRemoteType() == metadata.RemoteTypeCng {
+		// do a cluster compatibility check to see if cng reference creation is allowed
+		clusterCompat, err := adminport.xdcrCompTopologySvc.MyClusterCompatibility()
+		if err != nil {
+			logger_ap.Errorf("failed to fetch cluster compatibility while verifying if cng reference creation is allowed. err=%v", err)
+			return EncodeRemoteClusterErrorIntoResponse(fmt.Errorf("failed to verify cluster compatibility for cng reference creation: %w", err))
+		}
+		if !base.IsClusterCompatible(clusterCompat, base.VersionForCngSupport) {
+			return EncodeRemoteClusterErrorIntoResponse(base.ErrorCngUnsupported)
+		}
+	}
+
 	logger_ap.Infof("Request params: justValidate=%v, remoteClusterRef=%v\n",
 		justValidate, remoteClusterRef.CloneAndRedact())
 
@@ -492,6 +504,18 @@ func (adminport *Adminport) doChangeRemoteClusterRequest(request *http.Request) 
 			return EncodeRemoteClusterErrorsMapIntoResponse(errorsMap)
 		}
 
+		if remoteClusterRef.GetRemoteType() == metadata.RemoteTypeCng {
+			// do a cluster compatibility check to see if a CNG reference is allowed
+			clusterCompat, err := adminport.xdcrCompTopologySvc.MyClusterCompatibility()
+			if err != nil {
+				logger_ap.Errorf("failed to fetch cluster compatibility while verifying if cng reference is allowed. err=%v", err)
+				return EncodeRemoteClusterErrorIntoResponse(fmt.Errorf("failed to verify cluster compatibility for cng reference: %w", err))
+			}
+			if !base.IsClusterCompatible(clusterCompat, base.VersionForCngSupport) {
+				return EncodeRemoteClusterErrorIntoResponse(base.ErrorCngUnsupported)
+			}
+		}
+
 		logger_ap.Infof("Request params: justValidate=%v, remoteClusterRef=%v", justValidate, remoteClusterRef.CloneAndRedact())
 
 		if justValidate {
@@ -500,14 +524,16 @@ func (adminport *Adminport) doChangeRemoteClusterRequest(request *http.Request) 
 		}
 		setErr = remoteClusterService.SetRemoteCluster(remoteClusterName, remoteClusterRef)
 	case true:
+		// do a cluster compatibility check to see if staging is allowed
 		clusterCompat, err := adminport.xdcrCompTopologySvc.MyClusterCompatibility()
 		if err != nil {
-			logger_ap.Errorf("failed to fetch cluster compatibility while verifing if staging is allowed. err=%v", err)
+			logger_ap.Errorf("failed to fetch cluster compatibility while verifying if staging is allowed. err=%v", err)
 			return EncodeRemoteClusterErrorIntoResponse(fmt.Errorf("failed to verify cluster compatibility for staging: %w", err))
 		}
 		if !base.IsClusterCompatible(clusterCompat, base.VersionForSeamlessCredsChangeSupport) {
 			return EncodeRemoteClusterErrorIntoResponse(base.ErrorSeamlessCredsChangeMixedModeUnsupported)
 		}
+
 		stagedCredentials, errorsMap, err = DecodeRemoteClusterStagingRequest(request, remoteClusterName)
 		if err != nil {
 			return EncodeRemoteClusterErrorIntoResponse(err)

@@ -12,6 +12,7 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/binary"
 	"encoding/json"
@@ -38,12 +39,15 @@ import (
 	"github.com/couchbase/go-couchbase"
 	mc "github.com/couchbase/gomemcached"
 	mcc "github.com/couchbase/gomemcached/client"
+	"github.com/couchbase/goprotostellar/genproto/internal_xdcr_v1"
 	"github.com/couchbase/goutils/scramsha"
 	"github.com/couchbase/goxdcr/v8/base"
 	"github.com/couchbase/goxdcr/v8/base/filter"
 	"github.com/couchbase/goxdcr/v8/log"
 	"github.com/couchbase/goxdcr/v8/metadata"
 	"github.com/couchbaselabs/gojsonsm"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var NonExistentBucketError error = errors.New("Bucket doesn't exist")
@@ -3765,4 +3769,34 @@ func (u *Utilities) GetTerseInfo(localConnStr string, username, password string,
 	}
 
 	return clusterInfo, nil
+}
+
+// CngGetClusterInfo fetches cluster information from the target couchbase cluster via CNG
+// Returns the cluster info, gRPC status code, and error if any
+func (u *Utilities) CngGetClusterInfo(hostAddr string, userCreds base.Credentials, caCert []byte) (*internal_xdcr_v1.GetClusterInfoResponse, codes.Code, error) {
+	xdcrClient, err := base.NewXdcrGrpcClient(hostAddr, userCreds, base.HttpAuthMechHttps, caCert)
+	if err != nil {
+		return nil, codes.Unknown, fmt.Errorf("failed to initialize XDCR client: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), base.DefaultHttpTimeout)
+	defer cancel()
+
+	clusterInfo, err := xdcrClient.GetClusterInfo(ctx, &internal_xdcr_v1.GetClusterInfoRequest{})
+	if err != nil {
+		// Handle context deadline exceeded
+		if errors.Is(err, context.DeadlineExceeded) {
+			return nil, codes.DeadlineExceeded, fmt.Errorf("rpc timeout: %w", err)
+		}
+
+		// Handle gRPC status errors
+		if st, ok := status.FromError(err); ok {
+			return nil, st.Code(), fmt.Errorf("gRPC error: %w", err)
+		}
+
+		// any unexpected errors
+		return nil, codes.Unknown, fmt.Errorf("unexpected error: %w", err)
+	}
+
+	return clusterInfo, codes.OK, nil
 }
